@@ -97,6 +97,13 @@ class Zombie:
         self.y += distance * math.sin(self.dir)
         pass
 
+    def escape_slightly_to(self, tx, ty):
+        self.dir = math.atan2(ty-self.y, tx-self.x)
+        distance = RUN_SPEED_PPS * game_framework.frame_time
+        self.x += distance * math.cos(self.dir) * -1
+        self.y += distance * math.sin(self.dir) * -1
+        pass
+
     def move_to(self, r=0.5):
         # 이동하기 위해서 속도와 시각이 필요.
         self.state = 'Walk'
@@ -118,11 +125,14 @@ class Zombie:
 
     def move_to_boy(self, r=0.5):
         self.state = 'Walk'
-        self.move_slightly_to(play_mode.boy.x, play_mode.boy.y)
+        self.escape_slightly_to(play_mode.boy.x, play_mode.boy.y)
         if self.distance_less_than(play_mode.boy.x , play_mode.boy.y, self.x, self.y, r):
             return BehaviorTree.SUCCESS
         else:
             return BehaviorTree.RUNNING
+
+    def escape_to_boy(self):
+        pass
 
     def get_patrol_location(self):
         self.tx, self.ty = self.patrol_locations[self.loc_no]
@@ -149,7 +159,6 @@ class Zombie:
         root = chase_or_flee = Selector('추적 또는 배회', chase_boy, wander)
 
         a5 = Action ('순찰 위치 가져오기', self.get_patrol_location)
-        root = patrol = Sequence('순찰', a5, a2)
 
         self.bt = BehaviorTree(root)
         pass
